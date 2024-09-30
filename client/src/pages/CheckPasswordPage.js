@@ -40,13 +40,21 @@ const CheckPasswordPage = () => {
     const URL = `${process.env.REACT_APP_BACKEND_URL}/api/password`
 
     try {
-      const response = await axios.post(URL, data)
+      const response = await axios({
+        method : 'POST',
+        url : URL,
+        data : {
+          userId : location?.state?._id,
+          password : data.password
+        },
+        withCredentials : true
+      })
 
       toast.success(response.data.message)
 
       if(response.data.success) {
         setData({
-          password : ""
+          password : "",
         })
         navigate('/')
       }
@@ -98,7 +106,7 @@ const CheckPasswordPage = () => {
 
           </form>
 
-          <p className='my-3 text-center'><Link to={"/register"} className='hover:text-primary font-semibold'>Forgot password ?</Link></p>
+          <p className='my-3 text-center'><Link to={"/forgot-password"} className='hover:text-primary font-semibold'>Forgot password ?</Link></p>
         
         </div>
     </div>
