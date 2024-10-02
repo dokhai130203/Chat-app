@@ -6,15 +6,18 @@ import axios from 'axios'
 import toast from 'react-hot-toast';
 import { BiUserCircle } from "react-icons/bi";
 import Avatar from '../components/Avatar';
+import { useDispatch } from 'react-redux';
+import { setToken, setUser } from '../redux/userSlice';
+
 
 const CheckPasswordPage = () => {
   const [data, setData] = useState({
-    password : ""
+    password : "",
+    userId : ""
   })
   const navigate = useNavigate()
   const location = useLocation()
-
-  console.log("location", location.state)
+  const dispatch = useDispatch()
 
   useEffect(() => {
     if (!location?.state?.name) {
@@ -51,8 +54,11 @@ const CheckPasswordPage = () => {
       })
 
       toast.success(response.data.message)
-
+      
       if(response.data.success) {
+        dispatch(setToken(response?.data?.token))
+        localStorage.setItem('token', response?.data?.token)
+        
         setData({
           password : "",
         })
@@ -76,7 +82,6 @@ const CheckPasswordPage = () => {
               height={70}
               name={location?.state?.name}
               imageUrl={location?.state?.profile_pic}
-              // name={"Doan Ngoc Nha Triet"}
             />
             <h2 className='font-semibold text-lg mt-1'>{location?.state?.name}</h2>
           </div>
