@@ -16,7 +16,7 @@ app.use(cookiesParser())
 
 const PORT = process.env.PORT || 8080
 
-app.get('/', (resquest, response) => {
+app.get('/', (request, response) => {
     response.json({
         message : "Server running at " + PORT
     })
