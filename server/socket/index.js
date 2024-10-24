@@ -49,6 +49,16 @@ io.on('connection', async(socket) => {
             online : onlineUser.has(userId)
         }
         socket.emit('message-user', payload)
+
+        // get previous message
+        const getConversationMessage = await ConversationModel.findOne({
+            "$or" : [
+                { sender : user?._id, receiver : userId },
+                { sender : userId, receiver : user?._id }
+            ]
+        }).populate('messages').sort({ updatedAt : -1 })
+
+        socket.emit('message', getConversationMessage.messages)
     })
 
     // new message 
@@ -93,6 +103,33 @@ io.on('connection', async(socket) => {
 
         io.to(data?.sender).emit('message', getConversationMessage.messages)
         io.to(data?.receiver).emit('message', getConversationMessage.messages)
+    })
+
+    //sidebar
+    socket.on('sidebar', async(currentUserId) => {
+        console.log("current user", currentUserId)
+
+        const currentUserConversation = await ConversationModel.find({
+            "$or" : [
+                { sender : currentUserId },
+                { receiver : currentUserId }
+            ]
+        }).sort({ updatedAt : -1 }).populate('messages').populate('sender').populate('receiver')
+
+        console.log('currentUserConversation', currentUserConversation)
+
+        const conversation = currentUserConversation.map((conv) => {
+            const countUnseenMsg = conv.messages.reduce((prev, curr) => prev + (curr.seen ? 0 : 1) ,0)
+            return{
+                _id : conv?._id,
+                sender : conv?.sender,
+                receiver : conv?.receiver,
+                unseenMsg : countUnseenMsg,
+                lastMsg : conv.messages[conv?.messages.length - 1]
+            }
+        })
+
+        socket.emit('conversation', conversation)
     })
 
     // disconnect

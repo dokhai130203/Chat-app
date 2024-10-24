@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
 import Avatar from './Avatar'
@@ -12,6 +12,7 @@ import { IoClose } from "react-icons/io5";
 import Loading from './Loading';
 import backgroundImage from '../assets/wallapaper.jpeg'
 import { IoMdSend } from "react-icons/io";
+import moment from 'moment'
 
 const MessagePage = () => {
   const params = useParams()
@@ -33,6 +34,14 @@ const MessagePage = () => {
   })
 
   const [loading, setLoading] = useState(false)
+  const [allMessage, setAllMessage] = useState([])
+  const currentMessage = useRef(null)
+
+  useEffect(() => {
+    if (currentMessage.current) {
+      currentMessage.current.scrollIntoView({behavior : 'smooth', block : 'end'})
+    }
+  }, [allMessage])
 
   const handleUploadImageVideoOpen = () => {
     setOpenImageVideoUpload(prev => !prev)
@@ -98,6 +107,7 @@ const MessagePage = () => {
 
       socketConnection.on('message', (data) => {
         console.log('message data', data)
+        setAllMessage(data)
       })
     }
   }, [socketConnection,params?.userId, user])
@@ -171,10 +181,43 @@ const MessagePage = () => {
         {/**show all message */}
         <section className='h-[calc(100vh-128px)] overflow-x-hidden overflow-y-scroll scrollbar relative bg-slate-200 bg-opacity-50'>
 
+            {/** All message show here */}
+            <div className='flex flex-col gap-2 py-2 mx-2' ref={currentMessage}>
+              {
+                allMessage.map((msg, index) => {
+                  return (
+                    <div className={`bg-white p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg.msgByUserId ? "ml-auto bg-teal-300" : "" }`}>
+                      <div className='w-full'>
+                        {
+                          msg?.imageUrl && (
+                            <img
+                              src={msg?.imageUrl}
+                              className='w-full h-full object-scale-down'
+                            />
+                          )
+                        }
+                        {
+                          msg?.videoUrl && (
+                            <video
+                              src={msg?.videoUrl}
+                              className='w-full h-full object-scale-down'
+                              controls
+                            />
+                          )
+                        }
+                      </div>
+                      <p className='px-2'>{msg.text}</p>
+                      <p className='text-xs ml-auto w-fit'>{moment(msg.createdAt).format('hh.mm')}</p>
+                    </div>
+                  )
+                })
+              }
+            </div>
+
             {/**upload image display */}
             {
               message.imageUrl && (
-                <div className='h-full w-full bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
+                <div className='h-full w-full sticky bottom-0 bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
                   <div className='w-fit p-2 absolute top-0 right-0 cursor-pointer hover:text-red-600' onClick={handleClearUploadImage}>
                     <IoClose size={30}/>
                   </div>
@@ -192,7 +235,7 @@ const MessagePage = () => {
             {/**upload video display */}
             {
               message.videoUrl && (
-                <div className='h-full w-full bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
+                <div className='h-full w-full sticky bottom-0 bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
                   <div className='w-fit p-2 absolute top-0 right-0 cursor-pointer hover:text-red-600' onClick={handleClearUploadVideo}>
                     <IoClose size={30}/>
                   </div>
@@ -211,13 +254,11 @@ const MessagePage = () => {
 
             {
               loading && (
-                <div className='w-full h-full flex justify-center items-center'>
+                <div className='w-full h-full flex sticky bottom-0 justify-center items-center'>
                   <Loading/>
                 </div>
               )
             }
-
-          Show all message
         </section>
 
         {/**send message */}
