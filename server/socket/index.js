@@ -4,6 +4,7 @@ const http = require('http')
 const getUserDetailsFromToken = require('../helpers/getUserDetailsFromToken')
 const UserModel = require('../models/UserModel')
 const { ConversationModel, MessageModel } = require('../models/ConversationModel')
+const getConversation = require('../helpers/getConversation')
 
 const app = express()
 
@@ -58,7 +59,7 @@ io.on('connection', async(socket) => {
             ]
         }).populate('messages').sort({ updatedAt : -1 })
 
-        socket.emit('message', getConversationMessage.messages)
+        socket.emit('message', getConversationMessage?.messages || [])
     })
 
     // new message 
@@ -101,35 +102,24 @@ io.on('connection', async(socket) => {
             ]
         }).populate('messages').sort({ updatedAt : -1 })
 
-        io.to(data?.sender).emit('message', getConversationMessage.messages)
-        io.to(data?.receiver).emit('message', getConversationMessage.messages)
+        io.to(data?.sender).emit('message', getConversationMessage?.messages || [])
+        io.to(data?.receiver).emit('message', getConversationMessage?.messages || [])
+
+        // send conversation 
+        const conversationSender = await getConversation(data?.sender)
+        const conversationReceiver = await getConversation(data?.receiver)
+
+        io.to(data?.sender).emit('conversation', conversationSender)
+        io.to(data?.receiver).emit('conversation', conversationReceiver)
     })
 
     //sidebar
     socket.on('sidebar', async(currentUserId) => {
         console.log("current user", currentUserId)
 
-        const currentUserConversation = await ConversationModel.find({
-            "$or" : [
-                { sender : currentUserId },
-                { receiver : currentUserId }
-            ]
-        }).sort({ updatedAt : -1 }).populate('messages').populate('sender').populate('receiver')
+        const conversation = await getConversation(currentUserId)
 
-        console.log('currentUserConversation', currentUserConversation)
-
-        const conversation = currentUserConversation.map((conv) => {
-            const countUnseenMsg = conv.messages.reduce((prev, curr) => prev + (curr.seen ? 0 : 1) ,0)
-            return{
-                _id : conv?._id,
-                sender : conv?.sender,
-                receiver : conv?.receiver,
-                unseenMsg : countUnseenMsg,
-                lastMsg : conv.messages[conv?.messages.length - 1]
-            }
-        })
-
-        socket.emit('conversation', conversation)
+        socket.emit('conversation', conversation) 
     })
 
     // disconnect
