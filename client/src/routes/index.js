@@ -6,7 +6,9 @@ import CheckPasswordPage from "../pages/CheckPasswordPage";
 import Home from "../pages/Home";
 import MessagePage from "../components/MessagePage";
 import AuthLayouts from "../layout";
-import ForgotPassword from "../pages/ForgotPassword";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import CheckOtpPage from "../pages/CheckOtpPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 
 const router = createBrowserRouter([
 {
@@ -27,7 +29,15 @@ const router = createBrowserRouter([
         },
         {
             path : "forgot-password",
-            element : <AuthLayouts><ForgotPassword/></AuthLayouts>
+            element : <AuthLayouts><ForgotPasswordPage/></AuthLayouts>
+        },
+        {
+            path : "check-otp",
+            element : <AuthLayouts><CheckOtpPage/></AuthLayouts>
+        },
+        {
+            path : "reset-password",
+            element : <AuthLayouts><ResetPasswordPage/></AuthLayouts>
         },
         {
             path : "",
