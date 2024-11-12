@@ -19,18 +19,25 @@ async function checkPassword (request, response) {
             return response.status(400).json({
                 message : "Please check password",
                 error : true
-            })
+            });
         }
 
         const tokenData = {
             id : user._id,
             email : user.email
         }
-        const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY, {expiresIn : '1d'})
+        const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, {expiresIn : '1d'})
 
         const cookieOptions = {
             httpOnly : true,
             secure : true
+        }
+
+        if(password.length < 8) {
+            return response.status(400).json({
+                message : "Password must have at least 8 characters",
+                error : true
+            });
         }
 
         return response.cookie('token', token, cookieOptions).status(200).json({
