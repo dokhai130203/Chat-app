@@ -36,49 +36,68 @@ const EditUserDetails = ({onClose, user}) => {
     }
 
     const handleOpenUploadPhoto = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
+        e.preventDefault();
+        e.stopPropagation();
 
-        uploadPhotoRef.current.click()
+        uploadPhotoRef.current.click();
     }
 
     const handleUploadPhoto = async(e) => {
         const file = e.target.files[0]
 
-        const uploadPhoto = await uploadFile(file) 
+        if(!file) {
+            toast.error("No file selected")
+            return;
+        }
 
-        setData((prev) => {
-            return {
-                ...prev, 
-                profile_pic : uploadPhoto?.url
+        try {
+            const uploadPhoto = await uploadFile(file)
+            console.log("Uploaded photo URL: ", uploadPhoto?.url);
+
+            if(!uploadPhoto?.url) {
+                toast.error("Upload failed. Please try again")
+                return;
             }
-        })
+
+            setData((prev) => {
+                return {
+                    ...prev, 
+                    profile_pic : uploadPhoto?.url
+                }
+            });
+        } catch (error) {
+            console.error("Upload error", error)
+            toast.error("Failed to upload photo.")
+        }
     }
 
     const handleSubmit = async(e) => {
-        e.preventDefault()
-        e.stopPropagation()
+        e.preventDefault();
+        e.stopPropagation();
+
         try {
             const URL = `${process.env.REACT_APP_BACKEND_URL}/api/update-user`
+
+            console.log("Data send to API", data)   
 
             const response = await axios({
                 method: 'POST',
                 url : URL,
                 data : data,
                 withCredentials : true
-            })
+            });
 
-            console.log('response', response)
-            toast.success(response?.data?.message)
+            console.log('API Response', response)
+            toast.success(response?.data?.message, "Profile updated successfully!")
 
             if(response.data.success) {
                 dispatch(setUser(response.data.data))
-                onClose()
+                onClose();
             }
 
         } catch (error) {
             console.log(error)
-            toast.error()
+            toast.error(error?.response?.data?.message || "An error occurred.")
         }
     }
   return (
@@ -86,7 +105,6 @@ const EditUserDetails = ({onClose, user}) => {
         <div className='bg-white p-4 py-6 m-1 rounded w-full max-w-sm'>
             <h2 className='font-semibold'>Profile Details</h2>
             <p className='text-sm'>Edit user details</p>
-
             <form className='grid gap-3 mt-3' onSubmit={handleSubmit}>
                 <div className='flex flex-col gap-1'>
                     <label htmlFor="name">Name:</label>

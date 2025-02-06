@@ -16,13 +16,13 @@ async function registerUser(request, response) {
 
         // password into hashpassword
         const salt = await bcryptjs.genSalt(10)
-        const hashpassword = await bcryptjs.hash(password, salt)
+        const hashPassword = await bcryptjs.hash(password, salt)
 
         const payload = {
             name,
             email,
             profile_pic,
-            password : hashpassword
+            password : hashPassword
         }
 
         const user = new UserModel(payload)

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { IoSearchOutline } from "react-icons/io5";
+import { IoSearchOutline, IoClose } from "react-icons/io5";
 import Loading from './Loading';
 import UserSearchCard from './UserSearchCard';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { IoClose } from "react-icons/io5";
 
 const SearchUser = ({onClose}) => {
     const [searchUser, setSearchUser] = useState([])
@@ -55,7 +54,7 @@ const SearchUser = ({onClose}) => {
                 {/** no user found */}
                 {
                     searchUser.length === 0 && !loading && (
-                        <p className='text-center text-slate-500'>no user found!</p>
+                        <p className='text-center text-slate-500'>No user found!</p>
                     )
                 }
 

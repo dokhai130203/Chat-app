@@ -1,18 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
 import Avatar from './Avatar'
-import { HiDotsVertical } from "react-icons/hi";
-import { FaAngleLeft } from "react-icons/fa6";
-import { FaPlus } from "react-icons/fa6";
-import { FaImage } from "react-icons/fa6";
-import { FaVideo } from "react-icons/fa6";
 import uploadFile from '../helpers/uploadFile';
-import { IoClose } from "react-icons/io5";
 import Loading from './Loading';
 import backgroundImage from '../assets/wallapaper.jpeg'
-import { IoMdSend } from "react-icons/io";
 import moment from 'moment'
+import { HiDotsVertical } from "react-icons/hi";
+import { FaAngleLeft, FaPlus, FaImage, FaVideo,  } from "react-icons/fa6";
+import { IoClose } from "react-icons/io5";
+import { IoMdSend } from "react-icons/io";
+import { debounce } from 'lodash'
 
 const MessagePage = () => {
   const params = useParams()
@@ -45,23 +43,26 @@ const MessagePage = () => {
 
   const handleUploadImageVideoOpen = () => {
     setOpenImageVideoUpload(prev => !prev)
-  }
+  };
 
   const handleUploadImage = async(e) => {
-    const file = e.target.files[0]
-
-    setLoading(true)
-    const uploadPhoto = await uploadFile(file) 
-    setLoading(false)
-    setOpenImageVideoUpload(false)
-
-    setMessage(prev => {
-      return {
-        ...prev,
-        imageUrl : uploadPhoto.url
-      }
-    })
-  }
+    const file = e.target.files[0];
+    if(file && file.type.startsWith("image/")) { // Check if the file is an image
+      setLoading(true)
+      const uploadPhoto = await uploadFile(file) 
+      setLoading(false)
+      setOpenImageVideoUpload(false)
+  
+      setMessage(prev => {
+        return {
+          ...prev,
+          imageUrl : uploadPhoto.url
+        }
+      });
+    } else {
+      alert("Please upload a valid image file.");
+    }
+  };
 
   const handleClearUploadImage = () => {
     setMessage(prev => {
@@ -69,24 +70,27 @@ const MessagePage = () => {
         ...prev,
         imageUrl : ""
       }
-    })
+    });
   }
 
   const handleUploadVideo = async(e) => {
     const file = e.target.files[0]
-
-    setLoading(true)
-    const uploadPhoto = await uploadFile(file)
-    setLoading(false)
-    setOpenImageVideoUpload(false)
-
-    setMessage(prev => {
-      return {
-        ...prev,
-        videoUrl : uploadPhoto.url
-      }
-    })
-  }
+    if(file && file.type.startsWith("video/")) {
+      setLoading(true)
+      const uploadPhoto = await uploadFile(file)
+      setLoading(false)
+      setOpenImageVideoUpload(false)
+  
+      setMessage(prev => {
+        return {
+          ...prev,
+          videoUrl : uploadPhoto.url
+        }
+      });
+    } else {
+      alert("Please upload a valid video file.");
+    }
+  };
 
   const handleClearUploadVideo = () => {
     setMessage(prev => {
@@ -94,28 +98,38 @@ const MessagePage = () => {
         ...prev,
         videoUrl : ""
       }
-    }) 
+    });
   }
  
   useEffect(() => {
     if (socketConnection) {
       socketConnection.emit('message-page', params.userId)
-
       socketConnection.emit('seen', params.userId)
       
-      socketConnection.on('message-user', (data) => {
-        setDataUser(data)
-      })
+      const messageUserHandler = (data) => setDataUser(data)
+      const messageHandler = (data) => setAllMessage(data)
 
-      socketConnection.on('message', (data) => {
-        console.log('message data', data)
-        setAllMessage(data)
-      })
+      socketConnection.on('message-user', messageUserHandler)
+      socketConnection.on('message', messageHandler)
+
+      return () => {
+        socketConnection.off('message-user', messageUserHandler)
+        socketConnection.off('message', messageHandler)
+      }
     }
-  }, [socketConnection,params?.userId, user])
+  }, [socketConnection,params.userId, user])
+
+  // const debouncedSetMessageText = useCallback(debounce((value) => {
+  //   setMessage(prev => ({ ...prev, text: value }));
+  // }, 300), []);
+
+  // const handleOnChange = (e) => {
+  //   const { value } = e.target;
+  //   debouncedSetMessageText(value);
+  // };
 
   const handleOnChange = (e) => {
-    const { name, value} = e.target
+    const { value } = e.target
 
     setMessage(prev => {
       return {
@@ -126,7 +140,7 @@ const MessagePage = () => {
   }
 
   const handleSendMessage = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if(message.text || message.imageUrl || message.videoUrl) {
       if(socketConnection) {
@@ -166,9 +180,7 @@ const MessagePage = () => {
                 <div>
                   <h3 className='font-semibold text-lg my-0 text-ellipsis line-clamp-1'>{dataUser?.name}</h3>
                   <p className='-mt-2 text-sm'>
-                    {
-                      dataUser.online ? <span className='text-primary'>online</span>: <span className='text-slate-400'>offline</span>
-                    }
+                    {dataUser.online ? <span className='text-primary'>online</span>: <span className='text-slate-400'>offline</span>}
                   </p>
                 </div>
             </div>
@@ -188,7 +200,7 @@ const MessagePage = () => {
               {
                 allMessage.map((msg, index) => {
                   return (
-                    <div className={`p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg.msgByUserId ? "ml-auto bg-teal-200" : "bg-white" }`}>
+                    <div key={msg._id || index} className={`p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg.msgByUserId ? "ml-auto bg-teal-200" : "bg-white" }`}>
                       <div className='w-full'>
                         {
                           msg?.imageUrl && (
@@ -210,7 +222,7 @@ const MessagePage = () => {
                         }
                       </div>
                       <p className='px-2'>{msg.text}</p>
-                      <p className='text-xs ml-auto w-fit'>{moment(msg.createdAt).format('hh.mm')}</p>
+                      <p className='text-xs ml-auto w-fit'>{moment(msg.createdAt).format('hh:mm a')}</p>
                     </div>
                   )
                 })
@@ -321,7 +333,6 @@ const MessagePage = () => {
                 <IoMdSend size={28}/>
               </button>
           </form>
-
         </section>
     </div>
   )

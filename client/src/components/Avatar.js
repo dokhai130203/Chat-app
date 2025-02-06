@@ -5,20 +5,15 @@ import { useSelector } from "react-redux";
 const Avatar = ({userId, name, imageUrl, width, height}) => {
     const onlineUser = useSelector(state => state?.user?.onlineUser)
 
-    // Do Huynh Khai
-
     let avatarName = ""
-
     if(name) {  
         const splitName = name.split(" ")
 
         if(splitName.length > 1) {
             avatarName = splitName[0][0] + splitName[splitName.length - 1][0]
-            // avatarName = splitName[0][0] + splitName[1][0]
         }
         else {
             avatarName = splitName[0][0]
-
         }
     }
 

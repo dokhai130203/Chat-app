@@ -12,14 +12,15 @@ const UserSearchCard = ({user, onClose}) => {
           name={user?.name}
           userId={user?._id}
           imageUrl={user?.profile_pic}
-
         />
       </div>
       <div>
         <div className='font-semibold text-ellipsis line-clamp-1'>
           {user?.name}
         </div>
-        <p className='text-sm text-ellipsis line-clamp-1'>{user?.email}</p>
+        <p className='text-sm text-ellipsis line-clamp-1'>
+          {user?.email}
+        </p>
       </div>
     </Link>
   )
