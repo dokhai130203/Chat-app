@@ -9,8 +9,8 @@ const getConversation = async(currentUserId) => {
             ]
         }).sort({ updatedAt : -1 }).populate('messages').populate('sender').populate('receiver')
 
-        const conversation = currentUserConversation.map((conv) => {
-            const countUnseenMsg = conv.messages.reduce((prev, curr) => {
+        const conversation = currentUserConversation.map((chat) => {
+            const countUnseenMsg = chat.messages.reduce((prev, curr) => {
                 const msgByUserId = curr?.msgByUserId?.toString()
 
                 if(msgByUserId !== currentUserId) {
@@ -21,11 +21,11 @@ const getConversation = async(currentUserId) => {
             }, 0)
             
             return{
-                _id : conv?._id,
-                sender : conv?.sender,
-                receiver : conv?.receiver,
+                _id : chat?._id,
+                sender : chat?.sender,
+                receiver : chat?.receiver,
                 unseenMsg : countUnseenMsg,
-                lastMsg : conv.messages[conv?.messages.length - 1]
+                lastMsg : chat.messages[chat?.messages.length - 1]
             }
         })
 

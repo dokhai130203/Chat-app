@@ -4,8 +4,8 @@ const crypto = require("crypto")
 
 async function forgotPassword(request, response) {
     try {
-        const { email } = request.body // lấy email từ yêu cầu của user
-        const user = await UserModel.findOne({ email }) // tìm user trong db bằng email đã nhập
+        const { email } = request.body // Get email from user requests
+        const user = await UserModel.findOne({ email }) // Find a user in the database using the entered email
 
         if(!user) {
             return response.status(400).json({
@@ -22,8 +22,8 @@ async function forgotPassword(request, response) {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.EMAIL_USER, // địa chỉ email của bạn
-                pass: process.env.EMAIL_PASS  // mật khẩu hoặc mật khẩu ứng dụng
+                user: process.env.EMAIL_USER, // Your email address
+                pass: process.env.EMAIL_PASS  // Password or App Password
             }
         });
 

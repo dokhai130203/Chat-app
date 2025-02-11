@@ -14,7 +14,7 @@ async function registerUser(request, response) {
             })
         }
 
-        // password into hashpassword
+        // password into hashPassword
         const salt = await bcryptjs.genSalt(10)
         const hashPassword = await bcryptjs.hash(password, salt)
 
