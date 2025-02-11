@@ -5,6 +5,7 @@ const connectDB = require('./config/connectDB')
 const router = require('./routes/index')
 const cookiesParser = require('cookie-parser')
 const { app, server} = require('./socket/index')
+const errorHandler = require('./utils/errorHandler')
 
 // const app = express()
 app.use(cors({
@@ -24,6 +25,9 @@ app.get('/', (request, response) => {
 
 // api endpoints
 app.use('/api', router)
+
+// error handler
+app.use(errorHandler)
 
 connectDB().then(() => {
     server.listen(PORT, () => {
